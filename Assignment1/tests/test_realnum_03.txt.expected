@@ -1,0 +1,5 @@
+{1 , NUM , 1}
+{ , DOT , 1}
+{a , ID , 1}
+{2.14 , REALNUM , 2}
+{ , END_OF_FILE , 4}

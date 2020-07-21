@@ -1,0 +1,12 @@
+{1 , NUM , 2}
+{1 , NUM , 3}
+{ZZ22 , ID , 3}
+{ , DOT , 3}
+{3 , NUM , 3}
+{B4 , ID , 3}
+{IF , IF , 4}
+{WHILE , WHILE , 4}
+{ , MULT , 4}
+{ , DIV , 4}
+{ , ERROR , 4}
+{ , END_OF_FILE , 6}
