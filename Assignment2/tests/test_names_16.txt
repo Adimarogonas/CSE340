@@ -1,0 +1,17 @@
+xyz, rst, tmp;
+
+hello {
+  public: xyz, rst;
+  private: tmp, abc;
+  
+  world1 {
+    xyz = rst;
+    tmp = abc;
+  }
+  world2 {
+    public: xyz, tmp;
+
+    xyz = rst;
+    tmp = abc;
+  }
+}

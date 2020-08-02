@@ -1,0 +1,4 @@
+hello.xyz = hello.rst
+::tmp = ?.abc
+world2.xyz = hello.rst
+world2.tmp = ?.abc
