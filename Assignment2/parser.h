@@ -38,5 +38,6 @@ class parser{
 		var findVar(var query);
 		void resolveDeclaration(var resolveVar);
 		void printSymbolTable();
+		void printVarList();
 };
 #endif //__PARSER_H__

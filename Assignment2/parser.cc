@@ -9,7 +9,7 @@
 #include "parser.h"
 
 using namespace std;
-
+//VARIABLES AND VECTORS FOR PARSING AND NAME RESOLUTION
 LexicalAnalyzer lexer;
 string currentLable = "::";
 bool isPrivate = false;
@@ -17,54 +17,70 @@ int curLevel = 0;
 vector<declaration> decls;
 vector<var> vars;
 
+
+/**DEBUGGING PURPOSES
 string reservedW[] = { "END_OF_FILE", "PUBLIC", "PRIVATE",
     "EQUAL", "COLON", "COMMA", "SEMICOLON",
     "LBRAC", "RBRAC", "ID", "LPAREN", "RPAREN",
     "ERROR"
-};
-parser::parser(){
-}
-var::var() {
+};**/
+
+//INFRASTRUCTURE CODE FOR DATA STRUCTURES
+//
+//
+//
+//
+parser::parser() { }
+
+var::var() {//basic constructor
 	id = "";
 	scope = "";
 	encapsulation = "";
 	nestLevel = 0;
 }
-var::var(std::string name, std::string label, std::string encap, int nLevel){
+var::var(std::string name, std::string label, std::string encap, int nLevel){//initializes information for var
 	id = name;
 	scope = label;
 	encapsulation = encap;
 	nestLevel = nLevel;
 }
-declaration::declaration(){
+declaration::declaration(){//basic constructor
 
 }
-declaration::declaration(var l, var r){
+declaration::declaration(var l, var r){//stores the left and right variable of a declaration
 	left = l;
 	right = r;
 }
-void parser::syntax_error(){
+void parser::syntax_error(){//exits program
 	cout << "Syntax Error";
 	exit(1);
 }
-Token parser::peek(){
+Token parser::peek(){//Reads token without consuming it
 	Token ret = lexer.GetToken();
 	lexer.UngetToken(ret);
 	return ret;
 }
-Token parser::expect(TokenType type){
+Token parser::expect(TokenType type){//reads a token and will throw syntax error if not expected TokenType
 	Token t = lexer.GetToken();
 	if(t.token_type != type){
+		//Comments for debugging
 		//cout << "was " << reservedW[t.token_type] << " Expected " << reservedW[type] << " at " << t.line_no << "\n";
-		//t.Print();
+		//t.Print(); 
 		syntax_error();
 	}
 	return t;
 }
+//BEGIN PARSING HERE
+//
+//
+//
+//
 void parser::parse_program(){//global_vars scope
 	parse_global_vars();
 	parse_scope();
-	printSymbolTable();
+	expect(END_OF_FILE);//should end with this
+	printSymbolTable();//resolve the declarations
+	//printVarList();
 }
 void parser::parse_global_vars(){//ε OR var_list SEMICOLON
 	Token t;
@@ -86,10 +102,10 @@ void parser::parse_global_vars(){//ε OR var_list SEMICOLON
 void parser::parse_var_list(){//ID or ID COMMA var_list
 	Token t;
 	string encap;
-	if(isPrivate = true){
-		encap = "-";
+	if(isPrivate){
+		encap = "private";
 	} else {
-		encap = "+";
+		encap = "public";
 	}
 	if(currentLable == "::")
 		encap = "::";
@@ -140,7 +156,7 @@ void parser::parse_private_vars(){
 	if(t.token_type == PRIVATE){
 		t = lexer.GetToken();
 		t = expect(COLON);
-		isPrivate = false;
+		isPrivate = true;
 		parse_var_list();
 		t = expect(SEMICOLON);
 	} else {
@@ -190,10 +206,20 @@ int parser::findMatches(var findVar){//finds number of matches
 	return matches;
 }
 var parser::findVar(var Query){//searches for and returns variable
-	for(std::size_t i=0; i<vars.size(); ++i){
+	for(unsigned i = vars.size(); i-- > 0; ){
     	if(vars[i].id == Query.id){
-    		if(!(vars[i].encapsulation == "-" && vars[i].scope != Query.scope))
-    			return vars[i];//TODO: DO CHECKING IF SUITABLE FOR VAR HERE THIS WILL SAVE CPU CYCLES
+    		bool isthis = true;
+    		if(vars[i].scope == Query.scope)
+    			return vars[i];
+    		if(vars[i].encapsulation == "private"){
+    			if(vars[i].scope == Query.scope){
+    				return vars[i];//TODO: DO CHECKING IF SUITABLE FOR VAR HERE THIS WILL SAVE CPU CYCLES
+    			} else {
+    				isthis = false;
+    			}
+    		}
+    		if(vars[i].nestLevel < Query.nestLevel && isthis)
+    			return vars[i];
     	}
 	}
 	Query.scope = "?";
@@ -201,20 +227,17 @@ var parser::findVar(var Query){//searches for and returns variable
 }
 void parser::resolveDeclaration(var resolveVar){
 		var printVar;
-		int matches = findMatches(resolveVar);
+	//	int matches = findMatches(resolveVar);
 		printVar = resolveVar;
-		if(matches == 1){
+		/**if(matches == 1){
 			printVar = findVar(resolveVar);
-			if(printVar.nestLevel > resolveVar.nestLevel || (printVar.encapsulation == "-" && printVar.scope != resolveVar.scope)){
-				printVar = resolveVar;
-				printVar.scope = "?";
-			}
 		} else {
 			if(matches == 0){//TODO: Resolve multiple possible names
 				printVar = resolveVar;
 				printVar.scope = "?";
 			}
-		}
+		}**/
+		printVar = findVar(resolveVar);
 		if(printVar.scope != "::")
 			cout << printVar.scope << "." << printVar.id;
 		else
@@ -228,5 +251,10 @@ void parser::printSymbolTable(){
 		var rightres = decls[i].right;
 		resolveDeclaration(rightres);
 		cout << "\n";
+	}
+}
+void parser::printVarList(){
+	for(std::size_t i=0; i<vars.size(); ++i){
+		cout << vars[i].id << " : " << vars[i].scope << " : " << vars[i].encapsulation << endl;
 	}
 }
